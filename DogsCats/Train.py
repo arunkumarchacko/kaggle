@@ -5,15 +5,18 @@ import os, json
 from glob import glob
 import numpy as np
 np.set_printoptions(precision=4, linewidth=100)
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 # import utils; reload(utils)
 # from utils import plots
 
 path = "data/dogscats/"
+path = "/home/arun/ml/data/kaggledata/dogs_cats/dogscats/"
+# path = "/home/arun/ml/data/kaggledata/dogs_cats/dogscats/sample/"
+model_path = "/home/arun/ml/data/kaggledata/dogs_cats/model1.h5"
 # path = "data/dogscats/sample/"
 
-batch_size=128
+batch_size=32
 
 import vgg16; 
 from vgg16 import Vgg16
@@ -24,4 +27,4 @@ vgg = Vgg16()
 batches = vgg.get_batches(path+'train', batch_size=batch_size)
 val_batches = vgg.get_batches(path+'valid', batch_size=batch_size*2)
 vgg.finetune(batches)
-vgg.fit(batches, val_batches, nb_epoch=1)
+vgg.fit(batches, val_batches, nb_epoch=60, batch_size=batch_size, model_path=model_path)

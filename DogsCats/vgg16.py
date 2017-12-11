@@ -174,7 +174,7 @@ class Vgg16():
                 batches : A keras.preprocessing.image.ImageDataGenerator object.
                           See definition for get_batches().
         """
-        self.ft(batches.nb_class)
+        self.ft(batches.num_class)
         classes = list(iter(batches.class_indices)) # get a list of all the class labels
         
         # batches.class_indices is a dict with the class name as key and an index as value
@@ -204,13 +204,21 @@ class Vgg16():
                 validation_data=(val, val_labels), batch_size=batch_size)
 
 
-    def fit(self, batches, val_batches, nb_epoch=1):
+    def fit(self, batches, val_batches, batch_size, nb_epoch=1, model_path=None):
         """
             Fits the model on data yielded batch-by-batch by a Python generator.
             See Keras documentation: https://keras.io/models/model/
         """
-        self.model.fit_generator(batches, samples_per_epoch=batches.nb_sample, nb_epoch=nb_epoch,
-                validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
+        print(batches.samples, val_batches.samples)
+        # self.model.fit_generator(batches, samples_per_epoch=batches.samples, nb_epoch=nb_epoch,
+        #         validation_data=val_batches, nb_val_samples=val_batches.samples)
+        self.model.fit_generator(batches, steps_per_epoch=batches.samples/batch_size, epochs=nb_epoch, validation_data=val_batches, validation_steps=10)
+        # self.model.fit_generator(batches, steps_per_epoch=100, epochs=nb_epoch, validation_data=val_batches, validation_steps=100)
+
+        if model_path:
+            print('Saving to path', model_path)
+            self.model.save(model_path)
+        
 
 
     def test(self, path, batch_size=8):
