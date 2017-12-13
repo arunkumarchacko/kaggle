@@ -2,6 +2,8 @@ import os as os
 import glob as glob
 import shutil as shutil
 import pandas as pd
+import pprint as pp
+import random as random
 
 from pathlib import Path
 from shutil import rmtree, copyfile
@@ -21,30 +23,82 @@ def CreateDir(dirname):
     if os.path.exists(dirname):
         return
     
-    print('Creating directory:', dirname)
+    # print('Creating directory:', dirname)
     os.mkdir(dirname)
 
 def GetHomeDir():
     return str(Path.home())
 
 def GetImageFilesInDir(inpPath):
-    return glob.glob(os.path.join(inpPath, '*.jpg'))
+    return [f for f in glob.iglob(os.path.join(inpPath, '**/*.jpg'), recursive=True)]
 
-def SetupKaggleData(srcPath, labelPath, outPath):    
-    print('SetupKaggleData:', srcPath, labelPath, outPath)
+def CreateCategoryDirectories(labels, outDir, colName):
+    for category in set(labels[colName].tolist()):
+        CreateDir(os.path.join(outDir, category))
+
+def SetupKaggleData(srcPath, labelPath, outDir, colName):    
+    print('SetupKaggleData:', srcPath, labelPath, outDir)
     home = str(Path.home())
     tempPath = os.path.join(home, 'temp')
     print(tempPath)
 
-    if not outPath.startswith(tempPath):
-        print('Working folder should be in temp directory')
+    # if os.path.exists(outDir):
+    #     return
+
+    if not outDir.startswith(tempPath):
+        print('Working folder should be in temp directory', outDir)
         return
 
-    rmtree(outPath, ignore_errors=True)
-    CreateDir(outPath)
+    print('Removing', outDir)
+    rmtree(outDir, ignore_errors=False)
+    CreateDir(outDir)
+
+    labels = pd.read_csv(labelPath)
+    # print(labels.describe())
+
+    trainDir = os.path.join(outDir, 'train')
+    validDir = os.path.join(outDir, 'valid')
+    trialDir = os.path.join(outDir, 'trial')
+
+    CreateDir(trainDir)
+    CreateDir(validDir)
+    CreateDir(trialDir)
+
+    CreateCategoryDirectories(labels, trainDir, colName)
+    CreateCategoryDirectories(labels, validDir, colName)
+    CreateCategoryDirectories(labels, trialDir, colName)
 
     files = GetImageFilesInDir(srcPath)
-    labels = pd.read_csv(labelPath)
-    print(labels.describe())
+
+    print('Found {} files in directory {}'.format(len(files), srcPath))
+
+    random.shuffle(files)
+    imgToBreed = {}
+    for index, row in labels.iterrows():    
+        imgToBreed[row['id']] = row[colName]
+
+    trainCount = int(len(files) * .9)
+    tCount = 0
+    for f in  files[:trainCount]:
+        imgId = os.path.basename(f).split('.')[0]        
+        cpPath = os.path.join(os.path.join(trainDir, imgToBreed[imgId]), os.path.basename(f))
+        shutil.copyfile(f, cpPath)
+        tCount+=1
+
+        if tCount < 1000:
+            cpPath = os.path.join(os.path.join(trialDir, imgToBreed[imgId]), os.path.basename(f))
+            shutil.copyfile(f, cpPath)
+
+    for f in  files[trainCount:]:
+        imgId = os.path.basename(f).split('.')[0]
+        cpPath = os.path.join(os.path.join(validDir, imgToBreed[imgId]), os.path.basename(f))
+        shutil.copyfile(f, cpPath)
+    
+    print('TrainCount', len(GetImageFilesInDir(trainDir)))
+    print('ValidCount', len(GetImageFilesInDir(validDir)))
+    print('TrialCount', len(GetImageFilesInDir(trialDir)))
+        
+    
+
 
     
