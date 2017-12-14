@@ -18,6 +18,7 @@ from keras.utils import to_categorical
 from keras import optimizers
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
+import pickle as pickle
 
 home = utils.GetHomeDir()
 
@@ -28,6 +29,7 @@ labelPath = os.path.join(home, 'ml/data/kaggle/dogbreed/labels.csv')
 
 outPath = os.path.join(home, 'temp/dog_breed_workingdir')
 modelPath = os.path.join(home, 'ml/data/kaggle/dogbreed/model2.h5')
+featuresPath = os.path.join(home, 'ml/data/kaggle/dogbreed/features.pkl')
 
 
 # utils.CreateDir(trainDir)
@@ -53,7 +55,7 @@ base_model = VGG16(weights='imagenet', include_top=False, input_shape=(224,224,3
 
 for l in base_model.layers[:-6]:
     l.trainable = False
-    print(l.name)
+    # print(l.name)
 
 x = Flatten()(base_model.output)
 # x = Dense(1024, activation='relu')(x)
@@ -64,7 +66,7 @@ predictions = Dense(120, activation = 'sigmoid')(x)
 
 model = Model(input = base_model.input, output = predictions)
 
-print(model.summary())
+# print(model.summary())
 model.compile(loss='binary_crossentropy', optimizer=optimizers.SGD(lr=1e-4, momentum=0.9), metrics=['accuracy'])
 
 train_datagen = ImageDataGenerator(rescale=1. / 255, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
@@ -72,6 +74,10 @@ train_datagen = ImageDataGenerator(rescale=1. / 255, shear_range=0.2, zoom_range
 test_datagen = ImageDataGenerator(rescale=1. / 255)
 
 train_generator = train_datagen.flow_from_directory(trainDir, target_size=(img_height, img_width), batch_size=batch_size, class_mode='categorical')
+
+with open(featuresPath, 'wb') as handle:
+    pp.pprint(train_generator.class_indices)
+    pickle.dump(train_generator.class_indices, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 validation_generator = test_datagen.flow_from_directory(validDir, target_size=(img_height, img_width), batch_size=batch_size, class_mode='categorical')
 
