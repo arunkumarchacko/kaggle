@@ -22,6 +22,7 @@ from keras.preprocessing.image import ImageDataGenerator
 home = utils.GetHomeDir()
 
 originalTrainDir = os.path.join(home, 'ml/data/kaggle/dogbreed/train/')
+originalTestDir = os.path.join(home, 'ml/data/kaggle/dogbreed/test/')
 # originalValidDir = os.path.join(home, 'ml/data/kaggle/dogbreed/valid/')
 labelPath = os.path.join(home, 'ml/data/kaggle/dogbreed/labels.csv')
 
@@ -34,7 +35,7 @@ modelPath = os.path.join(home, 'ml/data/kaggle/dogbreed/model2.h5')
 # print('TrainPath:', trainDir, 'Validation:', validDir)
 
 
-utils.SetupKaggleData(originalTrainDir, labelPath,  outPath, 'breed')
+utils.SetupKaggleData(originalTrainDir, labelPath,  outPath, 'breed', originalTestDir)
 # utils.SetupKaggleData(originalValidDir, labelPath,  validDir, 'breed')
 
 
@@ -44,7 +45,7 @@ validDir = os.path.join(outPath, 'valid')
 
 nb_train_samples = len(utils.GetImageFilesInDir(trainDir))
 nb_validation_samples = len(utils.GetImageFilesInDir(validDir))
-epochs = 100
+epochs = 10
 batch_size = 8
 img_width, img_height = 224, 224
 

@@ -36,7 +36,7 @@ def CreateCategoryDirectories(labels, outDir, colName):
     for category in set(labels[colName].tolist()):
         CreateDir(os.path.join(outDir, category))
 
-def SetupKaggleData(srcPath, labelPath, outDir, colName):    
+def SetupKaggleData(srcPath, labelPath, outDir, colName, origTestDir):    
     print('SetupKaggleData:', srcPath, labelPath, outDir)
     home = str(Path.home())
     tempPath = os.path.join(home, 'temp')
@@ -59,10 +59,16 @@ def SetupKaggleData(srcPath, labelPath, outDir, colName):
     trainDir = os.path.join(outDir, 'train')
     validDir = os.path.join(outDir, 'valid')
     trialDir = os.path.join(outDir, 'trial')
+    testDir = os.path.join(os.path.join(outDir, 'test_root'), 'test')
+    testTrialDir = os.path.join(os.path.join(outDir, 'test_trial_root'), 'test')
 
     CreateDir(trainDir)
     CreateDir(validDir)
     CreateDir(trialDir)
+    CreateDir(os.path.join(outDir, 'test_root'))
+    CreateDir(testDir)
+    CreateDir(os.path.join(outDir, 'test_trial_root'))
+    CreateDir(testTrialDir)
 
     CreateCategoryDirectories(labels, trainDir, colName)
     CreateCategoryDirectories(labels, validDir, colName)
@@ -97,7 +103,17 @@ def SetupKaggleData(srcPath, labelPath, outDir, colName):
     print('TrainCount', len(GetImageFilesInDir(trainDir)))
     print('ValidCount', len(GetImageFilesInDir(validDir)))
     print('TrialCount', len(GetImageFilesInDir(trialDir)))
-        
+
+    files = GetImageFilesInDir(origTestDir)
+    print('Found {} test items in {}'.format(len(files), origTestDir))
+    for f in files:
+        cpPath = os.path.join(os.path.join(testDir, os.path.basename(f)))
+        shutil.copyfile(f, cpPath)
+    
+
+    for f in files[:20]:
+        cpPath = os.path.join(os.path.join(testTrialDir, os.path.basename(f)))
+        shutil.copyfile(f, cpPath)
     
 
 
